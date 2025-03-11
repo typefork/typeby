@@ -51,6 +51,12 @@ import { startBotFlow } from "./startBotFlow";
 import type { ParsedReply } from "./types";
 import { updateVariablesInSession } from "./updateVariablesInSession";
 
+export type ContinueBotFlowResponse = ContinueChatResponse & {
+  newSessionState: SessionState;
+  visitedEdges: Prisma.VisitedEdge[];
+  setVariableHistory: SetVariableHistoryItem[];
+};
+
 type Params = {
   version: 1 | 2;
   state: SessionState;
@@ -60,17 +66,12 @@ type Params = {
 export const continueBotFlow = async (
   reply: Message | undefined,
   { state, version, startTime, textBubbleContentFormat }: Params,
-): Promise<
-  ContinueChatResponse & {
-    newSessionState: SessionState;
-    visitedEdges: Prisma.VisitedEdge[];
-    setVariableHistory: SetVariableHistoryItem[];
-  }
-> => {
+): Promise<ContinueBotFlowResponse> => {
   resetGlobals();
   resetVariablesGlobals();
   if (!state.currentBlockId)
     return startBotFlow({
+      message: reply,
       state: resetSessionState(state),
       version,
       textBubbleContentFormat,
